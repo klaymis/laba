@@ -1,160 +1,79 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+import dash
+from dash import dcc, html
+import pandas as pd
+import plotly.express as px
 
-# C extensions
-*.so
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+df = pd.read_csv('your_data.csv')
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+app = dash.Dash(__name__)
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
 
-# Translations
-*.mo
-*.pot
+app.layout = html.Div([
+    html.H1("Анализ данных о солнечной радиации"),
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
 
-# Flask stuff:
-instance/
-.webassets-cache
+    dcc.Graph(id='solar-radiation-graph'),
 
-# Scrapy stuff:
-.scrapy
 
-# Sphinx documentation
-docs/_build/
+    dcc.Graph(id='second-graph'),
 
-# PyBuilder
-.pybuilder/
-target/
 
-# Jupyter Notebook
-.ipynb_checkpoints
+    dcc.RangeSlider(
+        id='date-range-slider',
+        marks={i: str(df['Date'][i]) for i in range(0, len(df), len(df) // 5)},
+        min=0,
+        max=len(df),
+        step=1,
+        value=[0, len(df)],
+        tooltip={'placement': 'bottom'}
+    ),
 
-# IPython
-profile_default/
-ipython_config.py
 
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
+    dcc.Dropdown(
+        id='graph-type-dropdown',
+        options=[
+            {'label': 'Line Plot', 'value': 'line'},
+            {'label': 'Scatter Plot', 'value': 'scatter'}
+        ],
+        value='line'
+    ),
 
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
 
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
 
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#pdm.lock
-#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
-#   in version control.
-#   https://pdm.fming.dev/#use-with-ide
-.pdm.toml
+])
 
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
 
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
 
-# SageMath parsed files
-*.sage.py
+@app.callback(
+    dash.dependencies.Output('solar-radiation-graph', 'figure'),
+    [dash.dependencies.Input('date-range-slider', 'value'),
+     dash.dependencies.Input('graph-type-dropdown', 'value')])
+def update_graph(selected_range, graph_type):
+    # Обновление графика в зависимости от выбранного диапазона дат и типа графика
+    filtered_df = df.iloc[selected_range[0]:selected_range[1]]
 
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+    if graph_type == 'line':
+        fig = px.line(filtered_df, x='Date', y='Solar Radiation', title='Line Plot: Solar Radiation over Time')
+    elif graph_type == 'scatter':
+        fig = px.scatter(filtered_df, x='Date', y='Solar Radiation', title='Scatter Plot: Solar Radiation over Time')
 
-# Spyder project settings
-.spyderproject
-.spyproject
+    return fig
 
-# Rope project settings
-.ropeproject
 
-# mkdocs documentation
-/site
 
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
+@app.callback(
+    dash.dependencies.Output('second-graph', 'figure'),
+    [dash.dependencies.Input('date-range-slider', 'value')])
+def update_second_graph(selected_range):
+    # Логика обновления второго графика в зависимости от выбранного диапазона дат
+    filtered_df = df.iloc[selected_range[0]:selected_range[1]]
+    fig = px.histogram(filtered_df, x='Column2', title='Histogram of Column2')
 
-# Pyre type checker
-.pyre/
+    return fig
 
-# pytype static type analyzer
-.pytype/
 
-# Cython debug symbols
-cython_debug/
 
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
+if __name__ == '__main__':
+    app.run_server(debug=True)
