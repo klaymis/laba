@@ -51,13 +51,13 @@ app.layout = html.Div([
     [dash.dependencies.Input('date-range-slider', 'value'),
      dash.dependencies.Input('graph-type-dropdown', 'value')])
 def update_graph(selected_range, graph_type):
-    # Обновление графика в зависимости от выбранного диапазона дат и типа графика
+
     filtered_df = df.iloc[selected_range[0]:selected_range[1]]
 
     if graph_type == 'line':
-        fig = px.line(filtered_df, x='Date', y='Solar Radiation', title='Line Plot: Solar Radiation over Time')
+        fig = px.line(filtered_df, x='Date', y='Solar Radiation', title='График зависимости солнечной радиации от времени')
     elif graph_type == 'scatter':
-        fig = px.scatter(filtered_df, x='Date', y='Solar Radiation', title='Scatter Plot: Solar Radiation over Time')
+        fig = px.scatter(filtered_df, x='Date', y='untensifnosti', title='Точечный график солнечной радиации во времени')
 
     return fig
 
@@ -69,7 +69,7 @@ def update_graph(selected_range, graph_type):
 def update_second_graph(selected_range):
     # Логика обновления второго графика в зависимости от выбранного диапазона дат
     filtered_df = df.iloc[selected_range[0]:selected_range[1]]
-    fig = px.histogram(filtered_df, x='Column2', title='Histogram of Column2')
+    fig = px.histogram(filtered_df, x='temperatyra', title='temperatyra')
 
     return fig
 
